@@ -23,11 +23,11 @@
 go build -o copypaste ./cmd/main.go
 ``` 
 Запустить ``` ./copypaste tests/text1.txt tests/commands1.txt output.txt ```
-Запустить тесты 
+Запустить тесты:
 ```
 go test -v ./...
 ```
-Если файл text1.txt содержит текст:
+Если файл ```text1.txt``` содержит текст:
 ```
 My
 program
@@ -39,6 +39,23 @@ wrong
 awesome
 
 ```
+Файл ```commands1.txt``` команды:
+```
+Down
+Down
+Down
+Shift
+Down
+Down
+Down
+Down
+Ctrl+X
+```
+То содержимое файла ```output.txt``` должно получиться:
+```
+My
+program
+is
+awesome
 
-
-
+```
