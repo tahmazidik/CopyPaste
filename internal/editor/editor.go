@@ -21,7 +21,7 @@ func (tb *TextBuffer) LoadFromFile(filename string) error {
 		tb.lines = append(tb.lines, scanner.Text())
 	}
 
-	tb.lines = append(tb.lines, "") //Пустая строчка в конце файла
+	//tb.lines = append(tb.lines, "") //Пустая строчка в конце файла
 	return scanner.Err()
 }
 
@@ -33,7 +33,7 @@ func (tb *TextBuffer) SaveToFile(filename string) error {
 	defer file.Close()
 
 	writer := bufio.NewWriter(file)
-	for _, line := range tb.lines[:len(tb.lines)-1] {
+	for _, line := range tb.lines {
 		_, err := writer.WriteString(line + "\n")
 		if err != nil {
 			return err
@@ -72,7 +72,7 @@ type Editor struct {
 	cursor      int
 	anchor      int
 	ShiftActive bool
-	clipboard   string
+	clipboard   []string
 }
 
 func NewEditor() *Editor {
@@ -81,7 +81,7 @@ func NewEditor() *Editor {
 		cursor:      0,
 		anchor:      0,
 		ShiftActive: false,
-		clipboard:   "",
+		clipboard:   make([]string, 0),
 	}
 }
 
@@ -93,7 +93,7 @@ func (e *Editor) SaveFile(filename string) error {
 	return e.bufer.SaveToFile(filename)
 }
 
-func (e *Editor) processCommand(cmd string) {
+func (e *Editor) ProcessCommand(cmd string) {
 	switch cmd {
 	case "Down":
 		if e.cursor < len(e.bufer.lines)-1 {
@@ -111,4 +111,56 @@ func (e *Editor) processCommand(cmd string) {
 	case "Ctrl+V":
 		e.paste()
 	}
+}
+
+func (e *Editor) getSelection() (int, int) {
+	start, end := e.anchor, e.cursor
+	if start > end {
+		start, end = end, start
+	}
+
+	if end >= len(e.bufer.lines)-1 {
+		end = len(e.bufer.lines) - 2
+	}
+
+	return start, end
+}
+
+func (e *Editor) cut() {
+	if e.ShiftActive {
+		start, end := e.getSelection()
+		if start >= len(e.bufer.lines)-1 {
+			e.ShiftActive = false
+			return
+		}
+
+		e.clipboard = make([]string, end-start+1)
+		copy(e.clipboard, e.bufer.lines[start:end+1])
+		e.bufer.RemoveLines(start, end-start+1)
+		e.cursor = start
+	} else {
+		if e.cursor >= len(e.bufer.lines)-1 {
+			return
+		}
+		e.clipboard = []string{(e.bufer.lines[e.cursor])}
+		e.bufer.RemoveLines(e.cursor, 1)
+	}
+	e.ShiftActive = false
+}
+
+func (e *Editor) paste() {
+	if len(e.clipboard) == 0 {
+		return
+	}
+
+	if e.ShiftActive {
+		start, end := e.getSelection()
+		e.bufer.RemoveLines(start, end-start+1)
+		e.bufer.InsertLines(start, e.clipboard)
+		e.cursor = start + len(e.clipboard)
+	} else {
+		e.bufer.InsertLines(e.cursor, e.clipboard)
+		e.cursor += len(e.clipboard)
+	}
+	e.ShiftActive = false
 }

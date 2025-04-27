@@ -1,0 +1,4 @@
+program
+is awesome
+My
+is awful
