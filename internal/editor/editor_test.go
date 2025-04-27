@@ -10,8 +10,12 @@ import (
 	"github.com/tahmazidik/Copy_Paste/internal/editor"
 )
 
+// TestEditorScenario1 - тестовый сценарий для редактора
+// t *testing.T - объект для управления тестами
 func TestEditorScenario1(t *testing.T) {
 	// Создаем временную директорию
+	//Она автоматически удалится после завершения теста
+	//Используется для изоляции тестов
 	tmpDir := t.TempDir()
 
 	// Подготовка тестовых файлов
@@ -19,21 +23,23 @@ func TestEditorScenario1(t *testing.T) {
 	cmdContent := []byte("Down\nDown\nDown\nShift\nDown\nDown\nDown\nDown\nCtrl+X")
 	expectedContent := []byte("My\nprogram\nis\nawesome\n")
 
+	//Создание файлов во врменной директории
 	// Записываем тестовые данные во временные файлы
-	inputPath := filepath.Join(tmpDir, "input.txt")
+	inputPath := filepath.Join(tmpDir, "input.txt") //filepath.Join - собирает путь к файлу
 	cmdPath := filepath.Join(tmpDir, "commands.txt")
 	outputPath := filepath.Join(tmpDir, "output.txt")
 
-	if err := os.WriteFile(inputPath, inputContent, 0644); err != nil {
+	// 0644 - права доступа к файлу
+	if err := os.WriteFile(inputPath, inputContent, 0644); err != nil { // os.WriteFile - записывает данные в файл
 		t.Fatalf("Failed to create input file: %v", err)
 	}
 	if err := os.WriteFile(cmdPath, cmdContent, 0644); err != nil {
 		t.Fatalf("Failed to create commands file: %v", err)
 	}
 
-	// Запускаем редактор
+	// Создаем новый экземпляр редактора и запускаем редактор
 	e := editor.NewEditor()
-	if err := e.LoadFile(inputPath); err != nil {
+	if err := e.LoadFile(inputPath); err != nil { //Загражает файл в редактор
 		t.Fatalf("LoadFile failed: %v", err)
 	}
 
